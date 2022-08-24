@@ -127,6 +127,8 @@ const (
 	LoadTestTypeGhz LoadTestType = "Ghz"
 	// LoadTestTypeK6 tells controller to use k6 provider
 	LoadTestTypeK6 LoadTestType = "K6"
+	// LoadTestTypeGeneric tells controller to use Embark-Load provider
+	LoadTestTypeGeneric LoadTestType = "Generic"
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
