@@ -40,7 +40,7 @@ spec:
               properties:
                 type:
                   type: string
-                  enum: [JMeter, Fake, Locust, Ghz, K6]
+                  enum: [JMeter, Fake, Locust, Ghz, K6, Generic]
                 distributedPods:
                   minimum: 1
                   type: integer
