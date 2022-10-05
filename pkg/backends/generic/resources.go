@@ -34,7 +34,7 @@ func newConfigMap(loadTest loadTestV1.LoadTest) *coreV1.ConfigMap {
 			OwnerReferences: []metaV1.OwnerReference{*ownerRef},
 		},
 		Data: map[string]string{
-			"testFile": loadTest.Spec.TestFile,
+			"testfile.json": loadTest.Spec.TestFile,
 		},
 	}
 }
