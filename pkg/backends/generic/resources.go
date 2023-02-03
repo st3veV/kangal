@@ -16,6 +16,7 @@ var (
 	loadTestLabelKey         = "app"
 	loadTestMasterLabelValue = "loadtest-master"
 	loadTestWorkerLabelValue = "loadtest-worker-pod"
+	loadTestLabelName        = "name"
 )
 
 func newConfigMapName(loadTest loadTestV1.LoadTest) string {
@@ -75,6 +76,7 @@ func newWorkerJob(
 	podTolerations []coreV1.Toleration,
 	image loadTestV1.ImageDetails,
 	logger *zap.Logger,
+	config *Config,
 ) *batchV1.Job {
 	name := newWorkerJobName(loadTest)
 
@@ -82,6 +84,7 @@ func newWorkerJob(
 
 	envVars := []coreV1.EnvVar{
 		{Name: "GENERIC_TESTFILE", Value: "/data/testfile.json"},
+		{Name: "NAME", Value: loadTest.ObjectMeta.Name},
 	}
 
 	envFrom := make([]coreV1.EnvFromSource, 0)
@@ -98,12 +101,22 @@ func newWorkerJob(
 	// No support for recovering after a failure
 	backoffLimit := int32(0)
 
+	containerPorts := []coreV1.ContainerPort{}
+	if config.WorkerMetricsPortName != "" {
+		containerPorts = append(containerPorts, coreV1.ContainerPort{
+			Name:          config.WorkerMetricsPortName,
+			ContainerPort: config.WorkerMetricsPort,
+			Protocol:      coreV1.ProtocolTCP,
+		})
+	}
+
 	return &batchV1.Job{
 		ObjectMeta: metaV1.ObjectMeta{
 			Name:      name,
 			Namespace: loadTest.Status.Namespace,
 			Labels: map[string]string{
-				loadTestLabelKey: name,
+				loadTestLabelKey:  name,
+				loadTestLabelName: loadTest.ObjectMeta.Name,
 			},
 			OwnerReferences: []metaV1.OwnerReference{*ownerRef},
 		},
@@ -114,7 +127,8 @@ func newWorkerJob(
 			Template: coreV1.PodTemplateSpec{
 				ObjectMeta: metaV1.ObjectMeta{
 					Labels: map[string]string{
-						loadTestLabelKey: loadTestWorkerLabelValue,
+						loadTestLabelKey:  loadTestWorkerLabelValue,
+						loadTestLabelName: loadTest.ObjectMeta.Name,
 					},
 					Annotations: podAnnotations,
 				},
@@ -137,6 +151,7 @@ func newWorkerJob(
 							},
 							Resources: backends.BuildResourceRequirements(workerResources),
 							EnvFrom:   envFrom,
+							Ports:     containerPorts,
 						},
 					},
 					Volumes: []coreV1.Volume{
