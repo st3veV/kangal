@@ -19,7 +19,7 @@ var (
 	// ErrRequireMinOneDistributedPod Backend spec requires 1 or more DistributedPods
 	ErrRequireMinOneDistributedPod = errors.New("LoadTest must specify 1 or more DistributedPods")
 
-	//ErrRequiredImageDetails Backed spec requires ImageDetails to be specified
+	// ErrRequiredImageDetails Backed spec requires ImageDetails to be specified
 	ErrRequiredImageDetails = errors.New("LoadTest must specify ImageDetails")
 
 	// ErrRequireTestFile the TestFile filed is required to not be an empty string
@@ -40,7 +40,7 @@ type Backend struct {
 	nodeSelector   map[string]string
 
 	// defined on SetDefaults
-	//masterResources backends.Resources
+	// masterResources backends.Resources
 	workerResources backends.Resources
 }
 
@@ -152,7 +152,7 @@ func (b *Backend) Sync(ctx context.Context, loadTest loadTestV1.LoadTest, report
 		}
 	}
 
-	workerJob := newWorkerJob(loadTest, configMap, secret, nil, b.workerResources, b.podAnnotations, b.nodeSelector, b.podTolerations, loadTest.Spec.WorkerConfig, b.logger)
+	workerJob := newWorkerJob(loadTest, configMap, secret, nil, b.workerResources, b.podAnnotations, b.nodeSelector, b.podTolerations, loadTest.Spec.WorkerConfig, b.logger, b.config)
 	_, err = b.kubeClientSet.
 		BatchV1().
 		Jobs(loadTest.Status.Namespace).
