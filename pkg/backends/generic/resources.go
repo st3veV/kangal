@@ -166,6 +166,18 @@ func newWorkerJob(
 							},
 						},
 					},
+					TopologySpreadConstraints: []coreV1.TopologySpreadConstraint{
+						{
+							MaxSkew:           1,
+							TopologyKey:       "kubernetes.io/hostname",
+							WhenUnsatisfiable: coreV1.ScheduleAnyway,
+							LabelSelector: &metaV1.LabelSelector{
+								MatchLabels: map[string]string{
+									loadTestLabelName: loadTest.ObjectMeta.Name,
+								},
+							},
+						},
+					},
 				},
 			},
 		},
