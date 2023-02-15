@@ -40,7 +40,7 @@ type Backend struct {
 	nodeSelector   map[string]string
 
 	// defined on SetDefaults
-	// masterResources backends.Resources
+	masterResources backends.Resources
 	workerResources backends.Resources
 }
 
@@ -62,6 +62,13 @@ func (b *Backend) SetDefaults() {
 		CPURequests:    b.config.WorkerCPURequests,
 		MemoryLimits:   b.config.WorkerMemoryLimits,
 		MemoryRequests: b.config.WorkerMemoryRequests,
+	}
+
+	b.masterResources = backends.Resources{
+		CPULimits:      b.config.MasterCPULimits,
+		CPURequests:    b.config.MasterCPURequests,
+		MemoryLimits:   b.config.MasterMemoryLimits,
+		MemoryRequests: b.config.MasterMemoryRequests,
 	}
 }
 
@@ -152,7 +159,24 @@ func (b *Backend) Sync(ctx context.Context, loadTest loadTestV1.LoadTest, report
 		}
 	}
 
-	workerJob := newWorkerJob(loadTest, configMap, secret, nil, b.workerResources, b.podAnnotations, b.nodeSelector, b.podTolerations, loadTest.Spec.WorkerConfig, b.logger, b.config)
+	masterJob := newMasterJob(loadTest, configMap, secret, reportURL, b.masterResources, b.podAnnotations, b.nodeSelector, b.podTolerations, loadTest.Spec.MasterConfig, b.logger, b.config)
+	_, err = b.kubeClientSet.
+		BatchV1().
+		Jobs(loadTest.Status.Namespace).
+		Create(ctx, masterJob, metaV1.CreateOptions{})
+	if err != nil && !k8sAPIErrors.IsAlreadyExists(err) {
+		b.logger.Error("Error on creating master job", zap.Error(err))
+		return err
+	}
+
+	masterService := newMasterService(loadTest, masterJob)
+	_, err = b.kubeClientSet.CoreV1().Services(loadTest.Status.Namespace).Create(ctx, masterService, metaV1.CreateOptions{})
+	if err != nil && !k8sAPIErrors.IsAlreadyExists(err) {
+		b.logger.Error("Error on creating master service", zap.Error(err))
+		return err
+	}
+
+	workerJob := newWorkerJob(loadTest, configMap, secret, masterService, b.workerResources, b.podAnnotations, b.nodeSelector, b.podTolerations, loadTest.Spec.WorkerConfig, b.logger, b.config)
 	_, err = b.kubeClientSet.
 		BatchV1().
 		Jobs(loadTest.Status.Namespace).
