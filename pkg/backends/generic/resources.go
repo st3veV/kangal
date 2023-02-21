@@ -103,6 +103,13 @@ func newMasterJob(
 		})
 	}
 
+	if loadTest.Spec.Duration != 0 {
+		envVars = append(envVars, coreV1.EnvVar{
+			Name:  "DURATION",
+			Value: loadTest.Spec.Duration.String(),
+		})
+	}
+
 	envFrom := make([]coreV1.EnvFromSource, 0)
 	if envvarSecret != nil {
 		envFrom = append(envFrom, coreV1.EnvFromSource{
@@ -224,6 +231,7 @@ func newWorkerJob(
 	loadTest loadTestV1.LoadTest,
 	testfileConfigMap *coreV1.ConfigMap,
 	envvarSecret *coreV1.Secret,
+	reportURL string,
 	masterService *coreV1.Service,
 	workerResources backends.Resources,
 	podAnnotations map[string]string,
@@ -241,6 +249,20 @@ func newWorkerJob(
 		{Name: "GENERIC_TESTFILE", Value: "/data/testfile.json"},
 		{Name: "NAME", Value: loadTest.ObjectMeta.Name},
 		{Name: "PRIMARY_HOST", Value: fmt.Sprintf("%s:%d", masterService.GetName(), primaryServicePort)},
+	}
+
+	if reportURL != "" {
+		envVars = append(envVars, coreV1.EnvVar{
+			Name:  "REPORT_PRESIGNED_URL",
+			Value: reportURL,
+		})
+	}
+
+	if loadTest.Spec.Duration != 0 {
+		envVars = append(envVars, coreV1.EnvVar{
+			Name:  "DURATION",
+			Value: loadTest.Spec.Duration.String(),
+		})
 	}
 
 	envFrom := make([]coreV1.EnvFromSource, 0)
