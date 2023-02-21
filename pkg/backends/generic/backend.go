@@ -176,7 +176,7 @@ func (b *Backend) Sync(ctx context.Context, loadTest loadTestV1.LoadTest, report
 		return err
 	}
 
-	workerJob := newWorkerJob(loadTest, configMap, secret, masterService, b.workerResources, b.podAnnotations, b.nodeSelector, b.podTolerations, loadTest.Spec.WorkerConfig, b.logger, b.config)
+	workerJob := newWorkerJob(loadTest, configMap, secret, reportURL, masterService, b.workerResources, b.podAnnotations, b.nodeSelector, b.podTolerations, loadTest.Spec.WorkerConfig, b.logger, b.config)
 	_, err = b.kubeClientSet.
 		BatchV1().
 		Jobs(loadTest.Status.Namespace).
