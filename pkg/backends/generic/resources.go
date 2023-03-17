@@ -36,7 +36,7 @@ func newConfigMap(loadTest loadTestV1.LoadTest) *coreV1.ConfigMap {
 			Namespace:       loadTest.Status.Namespace,
 			OwnerReferences: []metaV1.OwnerReference{*ownerRef},
 		},
-		Data: map[string]string{
+		BinaryData: map[string][]byte{
 			"testfile.json": loadTest.Spec.TestFile,
 		},
 	}
