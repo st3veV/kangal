@@ -3,6 +3,7 @@ package locust
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -93,7 +94,7 @@ func TestSyncStatus(t *testing.T) {
 	metav1TimeNow := metaV1.NewTime(now)
 	metav1TimeDayAgo := metaV1.NewTime(now.AddDate(0, 0, -1))
 
-	var tests = []struct {
+	tests := []struct {
 		Name           string
 		LoadTest       loadTestV1.LoadTest
 		ExpectedPhase  loadTestV1.LoadTestPhase
@@ -306,7 +307,7 @@ func TestTransformLoadTestSpec(t *testing.T) {
 				TestFile:        []byte("something in the file"),
 				EnvVars:         map[string]string{"my-key": "my-value"},
 				TargetURL:       "http://my-app.my-domain.com",
-				MasterConfig:    loadTestV1.ImageDetails{Image: "locustio/locust", Tag: "latest"},
+				MasterConfig:    loadTestV1.ImageDetails(fmt.Sprintf("%s:%s", "locustio/locust", "latest")),
 			},
 			wantErr: false,
 		},
